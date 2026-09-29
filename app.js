@@ -23,12 +23,27 @@ function onConnected(socket) {
     io.emit('clients-total', socketsConected.size)
   })
 
+  socket.on('join-room', (room, previousRoom) => {
+    if (previousRoom) {
+      socket.leave(previousRoom)
+    }
+    socket.join(room)
+  })
+
   socket.on('message', (data) => {
     // console.log(data)
-    socket.broadcast.emit('chat-message', data)
+    if (data.room) {
+      socket.to(data.room).emit('chat-message', data)
+    } else {
+      socket.broadcast.emit('chat-message', data)
+    }
   })
 
   socket.on('feedback', (data) => {
-    socket.broadcast.emit('feedback', data)
+    if (data.room) {
+      socket.to(data.room).emit('feedback', data)
+    } else {
+      socket.broadcast.emit('feedback', data)
+    }
   })
 }

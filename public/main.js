@@ -4,10 +4,26 @@ const clientsTotal = document.getElementById('client-total')
 
 const messageContainer = document.getElementById('message-container')
 const nameInput = document.getElementById('name-input')
+const roomInput = document.getElementById('room-input')
 const messageForm = document.getElementById('message-form')
 const messageInput = document.getElementById('message-input')
 
 const messageTone = new Audio('/message-tone.mp3')
+
+let currentRoom = roomInput ? roomInput.value : 'General'
+
+// Join the initial room
+socket.emit('join-room', currentRoom)
+
+if (roomInput) {
+  roomInput.addEventListener('change', () => {
+    const previousRoom = currentRoom
+    currentRoom = roomInput.value
+    socket.emit('join-room', currentRoom, previousRoom)
+    clearFeedback()
+    messageContainer.innerHTML = ''
+  })
+}
 
 messageForm.addEventListener('submit', (e) => {
   e.preventDefault()
@@ -25,6 +41,7 @@ function sendMessage() {
     name: nameInput.value,
     message: messageInput.value,
     dateTime: new Date(),
+    room: currentRoom,
   }
   socket.emit('message', data)
   addMessageToUI(true, data)
@@ -59,17 +76,20 @@ function scrollToBottom() {
 messageInput.addEventListener('focus', (e) => {
   socket.emit('feedback', {
     feedback: `✍️ ${nameInput.value} is typing a message`,
+    room: currentRoom,
   })
 })
 
 messageInput.addEventListener('keypress', (e) => {
   socket.emit('feedback', {
     feedback: `✍️ ${nameInput.value} is typing a message`,
+    room: currentRoom,
   })
 })
 messageInput.addEventListener('blur', (e) => {
   socket.emit('feedback', {
     feedback: '',
+    room: currentRoom,
   })
 })
 
